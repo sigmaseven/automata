@@ -22,7 +22,7 @@ type OllamaModel struct {
 	isChatSession bool
 }
 
-type OllamaGenerateTextRequest struct {
+type OllamaTextRequest struct {
 	Model     string         `json:"model"`
 	Prompt    string         `json:"prompt"`
 	Suffix    string         `json:"suffix,omitempty"`
@@ -34,9 +34,9 @@ type OllamaGenerateTextRequest struct {
 	Options   map[string]any `json:"options,omitempty"`
 }
 
-func NewOllamaGenerateTextRequest(model string) *OllamaGenerateTextRequest {
-	request := &OllamaGenerateTextRequest{
-		Model:     model,
+func (model *OllamaModel) NewTextRequest() *OllamaTextRequest {
+	request := &OllamaTextRequest{
+		Model:     model.model,
 		Prompt:    "",
 		Suffix:    "",
 		Format:    "",
@@ -51,7 +51,15 @@ func NewOllamaGenerateTextRequest(model string) *OllamaGenerateTextRequest {
 	return request
 }
 
-type OllamaGenerateTextResponse struct {
+func (request *OllamaTextRequest) GetModel() string {
+	return request.Model
+}
+
+func (request *OllamaTextRequest) GetRequest() []string {
+	return []string{request.Prompt}
+}
+
+type OllamaTextResponse struct {
 	Model              string `json:"model,omitempty"`
 	Response           string `json:"response,omitempty"`
 	CreatedAt          string `json:"created_at,omitempty"`
@@ -62,9 +70,9 @@ type OllamaGenerateTextResponse struct {
 	EvalDuration       uint   `json:"eval_duration,omitempty"`
 }
 
-func NewOllamaGenerateTextResponse() *OllamaGenerateTextResponse {
-	response := &OllamaGenerateTextResponse{
-		Model:              "",
+func (model *OllamaModel) NewTextResponse() *OllamaTextResponse {
+	response := &OllamaTextResponse{
+		Model:              model.model,
 		Response:           "",
 		CreatedAt:          "",
 		Done:               false,
@@ -77,6 +85,14 @@ func NewOllamaGenerateTextResponse() *OllamaGenerateTextResponse {
 	return response
 }
 
+func (response *OllamaTextResponse) GetModel() string {
+	return response.Model
+}
+
+func (response *OllamaTextResponse) GetResponse() string {
+	return response.Response
+}
+
 type OllamaChatMessage struct {
 	Role      string   `json:"role"`
 	Content   string   `json:"content"`
@@ -84,7 +100,7 @@ type OllamaChatMessage struct {
 	ToolCalls []string `json:"tool_calls,omitempty"`
 }
 
-func NewOllamaChatMessage(role string, content string) *OllamaChatMessage {
+func (model *OllamaModel) NewChatMessage(role string, content string) *OllamaChatMessage {
 	return &OllamaChatMessage{
 		Role:    role,
 		Content: content,
@@ -101,9 +117,9 @@ type OllamaChatRequest struct {
 	KeepAlive string              `json:"keep_alive,omitempty"`
 }
 
-func NewOllamaChatRequest(model string, messages []OllamaChatMessage) *OllamaChatRequest {
+func (model *OllamaModel) NewChatRequest(messages []OllamaChatMessage) *OllamaChatRequest {
 	return &OllamaChatRequest{
-		Model:     model,
+		Model:     model.model,
 		Messages:  messages,
 		Tools:     []string{},
 		Format:    "",
@@ -111,6 +127,20 @@ func NewOllamaChatRequest(model string, messages []OllamaChatMessage) *OllamaCha
 		Stream:    false,
 		KeepAlive: "5m",
 	}
+}
+
+func (request *OllamaChatRequest) GetModel() string {
+	return request.Model
+}
+
+func (request *OllamaChatRequest) GetRequest() []string {
+	var output []string
+
+	for _, message := range request.Messages {
+		output = append(output, message.Content)
+	}
+
+	return output
 }
 
 type OllamaChatResponse struct {
@@ -127,10 +157,18 @@ type OllamaChatResponse struct {
 	DoneReason         string            `json:"done_reason,omitempty"`
 }
 
-func NewOllamaChatResponse(model string) *OllamaChatResponse {
+func (model *OllamaModel) NewChatResponse() *OllamaChatResponse {
 	return &OllamaChatResponse{
-		Model: model,
+		Model: model.model,
 	}
+}
+
+func (response *OllamaChatResponse) GetModel() string {
+	return response.Model
+}
+
+func (response *OllamaChatResponse) GetResponse() string {
+	return response.Message.Content
 }
 
 type OllamaEmbeddingRequest struct {
@@ -167,8 +205,8 @@ func NewOllamaModel(baseUrl string, model string) *OllamaModel {
 
 func (model *OllamaModel) Query(request ModelRequest) (ModelResponse, error) {
 	switch request.(type) {
-	case *OllamaGenerateTextRequest:
-		response, err := model.Generate(request.(*OllamaGenerateTextRequest))
+	case *OllamaTextRequest:
+		response, err := model.Generate(request.(*OllamaTextRequest))
 
 		if err != nil {
 			return nil, err
@@ -190,7 +228,7 @@ func (model *OllamaModel) Query(request ModelRequest) (ModelResponse, error) {
 	}
 }
 
-func (model *OllamaModel) Generate(request *OllamaGenerateTextRequest) (*OllamaGenerateTextResponse, error) {
+func (model *OllamaModel) Generate(request *OllamaTextRequest) (*OllamaTextResponse, error) {
 	url := fmt.Sprintf("%s/api/generate", model.baseUrl)
 
 	bodyContent, err := json.Marshal(request)
@@ -228,7 +266,7 @@ func (model *OllamaModel) Generate(request *OllamaGenerateTextRequest) (*OllamaG
 		return nil, err
 	}
 
-	chatResponse := NewOllamaGenerateTextResponse()
+	chatResponse := model.NewTextResponse()
 
 	err = json.Unmarshal(responseBody, chatResponse)
 
@@ -277,7 +315,7 @@ func (model *OllamaModel) Chat(request *OllamaChatRequest) (*OllamaChatResponse,
 		return nil, err
 	}
 
-	chatResponse := NewOllamaChatResponse(model.model)
+	chatResponse := model.NewChatResponse()
 
 	err = json.Unmarshal(responseBody, chatResponse)
 

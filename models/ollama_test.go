@@ -5,29 +5,29 @@ import "testing"
 func TestOllamaModel_Generate(t *testing.T) {
 	model := NewOllamaModel("http://127.0.0.1:11434", "llama3:latest")
 
-	request := NewOllamaGenerateTextRequest(model.model)
+	request := model.NewTextRequest()
 
 	request.Prompt = "please do your best impersonation of a dog"
 
-	response, err := model.Generate(request)
+	response, err := model.Query(request)
 
 	if err != nil {
 		t.Error(err)
 	}
 
-	if len(response.Model) < 1 {
+	if len(response.GetModel()) < 1 {
 		t.Error("response model is empty")
 	}
 
-	if len(response.Response) < 1 {
+	if len(response.GetResponse()) < 1 {
 		t.Error("response is empty")
 	}
 }
 
 func TestOllamaModel_Chat(t *testing.T) {
 	model := NewOllamaModel("http://127.0.0.1:11434", "llama3:latest")
-	chatMessage := NewOllamaChatMessage(OllamaRoleUser, "hi there how are you?")
-	chatRequest := NewOllamaChatRequest(model.model, []OllamaChatMessage{*chatMessage})
+	chatMessage := model.NewChatMessage(OllamaRoleUser, "hi there how are you?")
+	chatRequest := model.NewChatRequest([]OllamaChatMessage{*chatMessage})
 
 	response, err := model.Chat(chatRequest)
 

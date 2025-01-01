@@ -6,7 +6,11 @@ type Model interface {
 }
 
 type ModelRequest interface {
+	GetModel() string
+	GetRequest() []string
 }
 
 type ModelResponse interface {
+	GetModel() string
+	GetResponse() string
 }
