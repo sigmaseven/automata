@@ -1,4 +1,4 @@
-package models
+package automata
 
 import "testing"
 

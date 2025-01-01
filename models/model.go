@@ -1,4 +1,4 @@
-package models
+package automata
 
 type Model interface {
 	Query(request ModelRequest) (ModelResponse, error)
