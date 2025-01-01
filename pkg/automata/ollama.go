@@ -26,6 +26,34 @@ type OllamaModel struct {
 	isChatSession bool
 }
 
+type OllamaModelConfig struct {
+	BaseUrl string `json:"base_url"`
+	Model   string `json:"model"`
+}
+
+func NewOllamaModelConfig(model string) *OllamaModelConfig {
+	return &OllamaModelConfig{
+		BaseUrl: "http://127.0.0.1:11434",
+		Model:   model,
+	}
+}
+
+func (config *OllamaModelConfig) GetBaseUrl() string {
+	return config.BaseUrl
+}
+
+func (config *OllamaModelConfig) SetBaseUrl(baseUrl string) {
+	config.BaseUrl = baseUrl
+}
+
+func (config *OllamaModelConfig) GetModel() string {
+	return config.Model
+}
+
+func (config *OllamaModelConfig) SetModel(model string) {
+	config.Model = model
+}
+
 type OllamaTextRequest struct {
 	Model     string         `json:"model"`
 	Prompt    string         `json:"prompt"`
@@ -483,11 +511,15 @@ func (response *OllamaEmbeddingResponse) SetModel(model string) {
 	response.Model = model
 }
 
-func NewOllamaModel(baseUrl string, model string) *OllamaModel {
-	return &OllamaModel{
-		model:   model,
-		baseUrl: baseUrl,
+func NewOllamaModel(config *OllamaModelConfig) (*OllamaModel, error) {
+	if config == nil {
+		return nil, errors.New("ollama model config is nil")
 	}
+
+	return &OllamaModel{
+		model:   config.GetModel(),
+		baseUrl: config.GetBaseUrl(),
+	}, nil
 }
 
 func (model *OllamaModel) Query(request ModelRequest) (ModelResponse, error) {

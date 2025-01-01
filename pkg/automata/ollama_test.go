@@ -3,7 +3,14 @@ package automata
 import "testing"
 
 func TestOllamaModel_Generate(t *testing.T) {
-	model := NewOllamaModel("http://127.0.0.1:11434", "llama3:latest")
+	config := NewOllamaModelConfig("llama3:latest")
+	config.SetBaseUrl("http://127.0.0.1:11434")
+
+	model, err := NewOllamaModel(config)
+
+	if err != nil {
+		t.Error(err)
+	}
 
 	request := model.NewTextRequest()
 
@@ -25,7 +32,15 @@ func TestOllamaModel_Generate(t *testing.T) {
 }
 
 func TestOllamaModel_Chat(t *testing.T) {
-	model := NewOllamaModel("http://127.0.0.1:11434", "llama3:latest")
+	config := NewOllamaModelConfig("llama3:latest")
+	config.SetBaseUrl("http://127.0.0.1:11434")
+
+	model, err := NewOllamaModel(config)
+
+	if err != nil {
+		t.Error(err)
+	}
+
 	chatMessage := model.NewChatMessage(OllamaRoleUser, "hi there how are you?")
 	chatRequest := model.NewChatRequest([]OllamaChatMessage{*chatMessage})
 
@@ -45,7 +60,15 @@ func TestOllamaModel_Chat(t *testing.T) {
 }
 
 func TestOllamaModel_GenerateEmbeddings(t *testing.T) {
-	model := NewOllamaModel("http://127.0.0.1:11434", "llama3:latest")
+	config := NewOllamaModelConfig("llama3:latest")
+	config.SetBaseUrl("http://127.0.0.1:11434")
+
+	model, err := NewOllamaModel(config)
+
+	if err != nil {
+		t.Error(err)
+	}
+
 	embedRequest := NewOllamaEmbeddingRequest(model.model, []string{"test"})
 
 	response, err := model.GenerateEmbeddings(embedRequest)
