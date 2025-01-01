@@ -7,10 +7,10 @@ type Model interface {
 
 type ModelRequest interface {
 	GetModel() string
-	GetRequest() []string
+	GetMessages() []string
 }
 
 type ModelResponse interface {
 	GetModel() string
-	GetResponse() string
+	GetMessage() string
 }

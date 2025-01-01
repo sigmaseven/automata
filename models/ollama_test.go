@@ -19,7 +19,7 @@ func TestOllamaModel_Generate(t *testing.T) {
 		t.Error("response model is empty")
 	}
 
-	if len(response.GetResponse()) < 1 {
+	if len(response.GetMessage()) < 1 {
 		t.Error("response is empty")
 	}
 }
